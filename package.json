@@ -1,0 +1,65 @@
+{
+  "name": "repocontext",
+  "version": "1.0.0",
+  "description": "Next-generation AST codebase map, token compression, and context packaging engine for AI coding agents and IDEs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "repocontext": "./dist/cli/index.js",
+    "repocontext-mcp": "./dist/mcp/server.js"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/cli/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mcp": "tsx src/mcp/server.ts",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "mcp",
+    "context-packer",
+    "repomix",
+    "ast",
+    "token-reduction",
+    "claude",
+    "cursor",
+    "codex",
+    "codebase-map",
+    "developer-tools"
+  ],
+  "author": "ILoveMyJay",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ILoveMyJay/repocontext.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ILoveMyJay/repocontext/issues"
+  },
+  "homepage": "https://github.com/ILoveMyJay/repocontext#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "boxen": "^7.1.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.3",
+    "ora": "^8.2.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

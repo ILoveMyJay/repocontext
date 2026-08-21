@@ -1,0 +1,7 @@
+tests
+.github
+*.log
+.DS_Store
+vitest.config.ts
+tsup.config.ts
+.repocontextrc.json
