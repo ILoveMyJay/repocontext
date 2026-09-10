@@ -3,6 +3,7 @@
 <div align="center">
 
 [![CI](https://github.com/ILoveMyJay/repocontext/actions/workflows/ci.yml/badge.svg)](https://github.com/ILoveMyJay/repocontext/actions)
+[![Glama Score](https://glama.ai/mcp/servers/ILoveMyJay/repocontext/badges/score.svg)](https://glama.ai/mcp/servers/ILoveMyJay/repocontext)
 [![npm version](https://img.shields.io/npm/v/repocontext.svg?color=blue)](https://www.npmjs.com/package/repocontext)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen.svg)](https://modelcontextprotocol.io)
@@ -42,14 +43,17 @@
 
 ### 1. 免安装一键运行
 ```bash
-# 打包当前仓库为优化后的 Markdown Prompt
-npx repocontext pack
+# 1. 打包代码并直接复制到系统剪贴板（可直接粘贴进 ChatGPT / Claude 网页版）
+npx repocontext pack -c
 
-# 针对特定任务仅提取最相关上下文
+# 2. 针对特定任务仅提取最相关上下文
 npx repocontext pack -q "实现微信支付回调处理" -o prompt.md
 
-# 生成高紧凑度的 AST 架构图谱
-npx repocontext map -o codebase-map.md
+# 3. 生成高紧凑度的 AST 架构图谱并复制
+npx repocontext map -c
+
+# 4. 分析代码库各语言 Token 分布与压缩率
+npx repocontext analyze .
 ```
 
 ### 2. 全局安装

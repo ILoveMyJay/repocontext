@@ -1,10 +1,33 @@
 import * as path from 'node:path';
+import { spawn } from 'node:child_process';
 import { Command } from 'commander';
 import ora from 'ora';
 import chalk from 'chalk';
 import { RepoPacker } from '../core/packer.js';
 import { OutputFormat, PackMode } from '../core/types.js';
 import { CliUi } from './ui.js';
+
+function copyToClipboard(text: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    let proc;
+    if (process.platform === 'darwin') {
+      proc = spawn('pbcopy');
+    } else if (process.platform === 'win32') {
+      proc = spawn('clip');
+    } else {
+      proc = spawn('xclip', ['-selection', 'clipboard']);
+    }
+
+    proc.on('error', () => resolve(false));
+    proc.on('close', (code) => resolve(code === 0));
+    try {
+      proc.stdin.write(text);
+      proc.stdin.end();
+    } catch {
+      resolve(false);
+    }
+  });
+}
 
 const program = new Command();
 
@@ -21,6 +44,7 @@ program
   .option('-f, --format <format>', 'Output format: markdown, xml, json', 'markdown')
   .option('-o, --output <file>', 'Output file path', 'repocontext-output.md')
   .option('-t, --max-tokens <number>', 'Maximum token budget for prompt pack', '80000')
+  .option('-c, --copy', 'Copy packed context directly to system clipboard')
   .option('--no-security', 'Disable automatic secret scanning and redaction')
   .action(async (dir = '.', opts) => {
     CliUi.printBanner();
@@ -44,6 +68,15 @@ program
 
       spinner.succeed('Codebase packed successfully!');
       CliUi.printStats(result.stats, result.securityFindings.length, opts.output);
+
+      if (opts.copy) {
+        const copied = await copyToClipboard(result.formattedOutput);
+        if (copied) {
+          console.log(chalk.green('  📋 Packed context copied directly to clipboard!'));
+        } else {
+          console.log(chalk.dim('  ⚠️ Could not copy to clipboard automatically.'));
+        }
+      }
     } catch (err: any) {
       spinner.fail(`Failed to pack codebase: ${err.message}`);
       process.exit(1);
@@ -54,6 +87,7 @@ program
   .command('map [dir]')
   .description('Generate a lightweight, token-compressed AST symbol map of the codebase')
   .option('-o, --output <file>', 'Output file path', 'codebase-map.md')
+  .option('-c, --copy', 'Copy codebase map directly to system clipboard')
   .action(async (dir = '.', opts) => {
     CliUi.printBanner();
     const spinner = ora('Extracting AST symbol outlines...').start();
@@ -68,8 +102,40 @@ program
 
       spinner.succeed('AST Codebase Map generated!');
       CliUi.printStats(result.stats, result.securityFindings.length, opts.output);
+
+      if (opts.copy) {
+        const copied = await copyToClipboard(result.formattedOutput);
+        if (copied) {
+          console.log(chalk.green('  📋 AST Codebase Map copied directly to clipboard!'));
+        } else {
+          console.log(chalk.dim('  ⚠️ Could not copy to clipboard automatically.'));
+        }
+      }
     } catch (err: any) {
       spinner.fail(`Failed to generate map: ${err.message}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('analyze [dir]')
+  .description('Analyze codebase token counts, language breakdown, and potential AST savings')
+  .action(async (dir = '.') => {
+    CliUi.printBanner();
+    const spinner = ora('Scanning and analyzing token distribution...').start();
+
+    try {
+      const targetDir = path.resolve(dir);
+      const result = await RepoPacker.pack({
+        rootDir: targetDir,
+        mode: 'ast',
+        format: 'json'
+      });
+
+      spinner.succeed('Codebase analysis complete!');
+      CliUi.printStats(result.stats, result.securityFindings.length);
+    } catch (err: any) {
+      spinner.fail(`Failed to analyze codebase: ${err.message}`);
       process.exit(1);
     }
   });

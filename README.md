@@ -3,6 +3,7 @@
 <div align="center">
 
 [![CI](https://github.com/ILoveMyJay/repocontext/actions/workflows/ci.yml/badge.svg)](https://github.com/ILoveMyJay/repocontext/actions)
+[![Glama Score](https://glama.ai/mcp/servers/ILoveMyJay/repocontext/badges/score.svg)](https://glama.ai/mcp/servers/ILoveMyJay/repocontext)
 [![npm version](https://img.shields.io/npm/v/repocontext.svg?color=blue)](https://www.npmjs.com/package/repocontext)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen.svg)](https://modelcontextprotocol.io)
@@ -63,17 +64,29 @@ npm install -g repocontext
 ## 🛠️ CLI Usage & Options
 
 ```bash
-repocontext pack [dir] [options]
+# 1. Pack with direct clipboard copy (ready to paste into ChatGPT/Claude)
+repocontext pack -c
 
-Options:
-  -m, --mode <mode>         Packing mode: full | ast | relevant | hybrid (default: "full")
-  -q, --query <query>       Filter and rank files relevant to a coding task prompt
-  -f, --format <format>     Output format: markdown | xml | json (default: "markdown")
-  -o, --output <file>       Output file path (default: "repocontext-output.md")
-  -t, --max-tokens <number> Maximum token budget ceiling (default: 80000)
-  --no-security             Disable secret scanning and auto-redaction
-  -h, --help                Display help for command
+# 2. Pack relevant files only based on task query
+repocontext pack -q "Fix JWT auth expiration" -o prompt.md
+
+# 3. Generate AST symbol map
+repocontext map -c
+
+# 4. Analyze token distribution without writing a file
+repocontext analyze .
 ```
+
+### Options for `pack`:
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `-m, --mode <mode>` | Packing mode: `full`, `ast`, `relevant`, `hybrid` | `"full"` |
+| `-q, --query <query>` | Filter and rank files relevant to coding prompt | None |
+| `-f, --format <format>`| Output format: `markdown`, `xml`, `json` | `"markdown"` |
+| `-o, --output <file>` | Output file path | `"repocontext-output.md"` |
+| `-t, --max-tokens <num>`| Maximum token budget | `80000` |
+| `-c, --copy` | Copy output directly to system clipboard | `false` |
+| `--no-security` | Disable automated secret redaction | `false` |
 
 ---
 

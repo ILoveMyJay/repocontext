@@ -29,6 +29,15 @@ export class AstParser {
       case 'rust':
         skeletonCode = this.parseRust(content, symbols, imports, exports);
         break;
+      case 'java':
+      case 'csharp':
+      case 'kotlin':
+        skeletonCode = this.parseJavaOrCSharp(content, symbols, imports, exports, language);
+        break;
+      case 'c':
+      case 'cpp':
+        skeletonCode = this.parseCAndCpp(content, symbols, imports, exports);
+        break;
       default:
         skeletonCode = this.parseGeneric(content);
     }
@@ -362,6 +371,182 @@ export class AstParser {
     }
 
     return result.length > 0 ? result.join('\n') : '// [Empty Rust outline]';
+  }
+
+  private static parseJavaOrCSharp(
+    content: string,
+    symbols: AstSymbol[],
+    imports: string[],
+    exportsList: string[],
+    language: SupportedLanguage
+  ): string {
+    const lines = content.split('\n');
+    const result: string[] = [];
+    let inBlockComment = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Comments & Javadoc
+      if (trimmed.startsWith('/*')) {
+        inBlockComment = true;
+        result.push(line);
+        if (trimmed.endsWith('*/') && trimmed.length > 2) inBlockComment = false;
+        continue;
+      }
+      if (inBlockComment) {
+        result.push(line);
+        if (trimmed.endsWith('*/')) inBlockComment = false;
+        continue;
+      }
+      if (trimmed.startsWith('//')) {
+        if (trimmed.startsWith('///')) result.push(line);
+        continue;
+      }
+
+      // Package & Imports / Usings
+      if (
+        trimmed.startsWith('package ') ||
+        trimmed.startsWith('import ') ||
+        trimmed.startsWith('using ') ||
+        trimmed.startsWith('namespace ')
+      ) {
+        result.push(line);
+        imports.push(trimmed);
+        continue;
+      }
+
+      // Annotations / Attributes
+      if (trimmed.startsWith('@') || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        result.push(line);
+        continue;
+      }
+
+      // Class / Interface / Record / Enum / Struct declarations
+      if (/(?:public|protected|private|internal|abstract|final|static|\s)*\b(?:class|interface|record|enum|struct)\s+([A-Za-z0-9_]+)/.test(trimmed)) {
+        const cleaned = line.replace(/\{[\s\S]*$/, '{');
+        result.push(cleaned);
+        const match = trimmed.match(/\b(?:class|interface|record|enum|struct)\s+([A-Za-z0-9_]+)/);
+        if (match) {
+          symbols.push({
+            name: match[1],
+            kind: 'class',
+            lineStart: i + 1,
+            lineEnd: i + 1,
+            signature: trimmed
+          });
+        }
+        continue;
+      }
+
+      // Method declarations
+      if (/(?:public|protected|private|internal|static|final|virtual|override|async|\s)+\b[A-Za-z0-9_<>,\s]+\s+([A-Za-z0-9_]+)\s*\([^)]*\)/.test(trimmed)) {
+        const cleaned = line.replace(/\{[\s\S]*$/, '{ /* ... */ }');
+        result.push(cleaned.endsWith('}') || cleaned.endsWith(';') ? cleaned : `${cleaned} { /* ... */ }`);
+        const match = trimmed.match(/\s+([A-Za-z0-9_]+)\s*\([^)]*\)/);
+        if (match) {
+          symbols.push({
+            name: match[1],
+            kind: 'method',
+            lineStart: i + 1,
+            lineEnd: i + 1,
+            signature: trimmed
+          });
+        }
+        continue;
+      }
+
+      // Member variables / constants
+      if (/(?:public|protected|private)\s+(?:static\s+)?(?:final|readonly|const)?\s+[A-Za-z0-9_<>[\]]+\s+([A-Za-z0-9_]+)\s*(?:=|;)/.test(trimmed)) {
+        result.push(line.replace(/=[\s\S]*;/, ';'));
+        continue;
+      }
+
+      // Closing braces
+      if (trimmed === '}' || trimmed === '};') {
+        result.push(line);
+      }
+    }
+
+    return result.length > 0 ? result.join('\n') : `// [Empty ${language} outline]`;
+  }
+
+  private static parseCAndCpp(
+    content: string,
+    symbols: AstSymbol[],
+    imports: string[],
+    exportsList: string[]
+  ): string {
+    const lines = content.split('\n');
+    const result: string[] = [];
+    let inBlockComment = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith('/*')) {
+        inBlockComment = true;
+        result.push(line);
+        if (trimmed.endsWith('*/') && trimmed.length > 2) inBlockComment = false;
+        continue;
+      }
+      if (inBlockComment) {
+        result.push(line);
+        if (trimmed.endsWith('*/')) inBlockComment = false;
+        continue;
+      }
+      if (trimmed.startsWith('//')) continue;
+
+      // Preprocessor directives
+      if (trimmed.startsWith('#include') || trimmed.startsWith('#define') || trimmed.startsWith('#pragma')) {
+        result.push(line);
+        if (trimmed.startsWith('#include')) imports.push(trimmed);
+        continue;
+      }
+
+      // Namespace / Class / Struct / Enum
+      if (/(?:template\s*<[^>]*>\s*)?(?:class|struct|enum(?:\s+class)?|namespace)\s+([A-Za-z0-9_]+)/.test(trimmed)) {
+        const cleaned = line.replace(/\{[\s\S]*$/, '{');
+        result.push(cleaned);
+        const match = trimmed.match(/(?:class|struct|enum(?:\s+class)?|namespace)\s+([A-Za-z0-9_]+)/);
+        if (match) {
+          symbols.push({
+            name: match[1],
+            kind: 'class',
+            lineStart: i + 1,
+            lineEnd: i + 1,
+            signature: trimmed
+          });
+        }
+        continue;
+      }
+
+      // Function prototype or definition
+      if (/^[A-Za-z0-9_&*:<>\s]+\s+([A-Za-z0-9_~]+)\s*\([^)]*\)\s*(?:const|override|noexcept)?\s*(?:\{|;)/.test(trimmed)) {
+        const cleaned = line.replace(/\{[\s\S]*$/, '{ /* ... */ }');
+        result.push(cleaned);
+        const match = trimmed.match(/([A-Za-z0-9_~]+)\s*\([^)]*\)/);
+        if (match) {
+          symbols.push({
+            name: match[1],
+            kind: 'function',
+            lineStart: i + 1,
+            lineEnd: i + 1,
+            signature: trimmed
+          });
+        }
+        continue;
+      }
+
+      // Closing braces
+      if (trimmed === '}' || trimmed === '};') {
+        result.push(line);
+      }
+    }
+
+    return result.length > 0 ? result.join('\n') : '// [Empty C/C++ outline]';
   }
 
   private static parseGeneric(content: string): string {
