@@ -2,6 +2,20 @@
 
 All notable changes to **RepoContext** will be documented in this file.
 
+## [1.2.0] - 2026-09-23
+
+### Added
+- **New MCP Tool `read_file_content`**: Precise line-range windowing (`startLine`/`endLine`) with integrated automatic secret masking. Completes the three-tier context hierarchy recommended by Glama evaluation audit.
+- **Glama TDQS Grade A+ Compliance**:
+  - Implemented industrial triple-layer descriptions (Action, Behavior, and Usage Guidelines) across all MCP tools.
+  - Explicit read-only and zero-side-effects security disclosures.
+  - Mutual-exclusion routing directives (`When to use` vs `When NOT to use`) eliminating agent ambiguity.
+- **MCP Test Suite**: Added dedicated Vitest suite (`tests/mcp.test.ts`) covering all 4 tools, parameter constraints, secret redaction, and error contracts.
+
+### Improved
+- Upgraded MCP server export architecture with modular `createMcpServer()` factory for robust automated testing and embedding.
+- Enhanced file outline headers with explicit language and token compression ratio metadata.
+
 ## [1.1.0] - 2026-09-10
 
 ### Added

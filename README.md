@@ -105,10 +105,11 @@ RepoContext comes with built-in MCP server support. Add it to your `claude_deskt
 }
 ```
 
-### Exposed MCP Tools:
-* `get_codebase_map`: Returns AST symbol outline map of the repository.
-* `extract_relevant_context`: Prunes codebase and returns only files needed for a prompt.
-* `read_file_outline`: Reads compressed AST skeleton for a single file.
+### Exposed MCP Tools (4-Tier Context Pyramid):
+* `get_codebase_map`: Extracts token-efficient AST symbol outline map across the repository (~80% token savings).
+* `extract_relevant_context`: Prunes codebase using semantic ranking to return files pertinent to a task prompt.
+* `read_file_outline`: Reads compressed AST skeleton for an individual file (signatures & docstrings).
+* `read_file_content`: Precise source code reading with optional line-range slicing (`startLine`/`endLine`) and automated credential masking.
 
 ---
 

@@ -77,6 +77,12 @@ npm install -g repocontext
 }
 ```
 
+### 暴露的标准 MCP 工具（四级金字塔架构）：
+* `get_codebase_map`：提取全仓 AST 符号大纲图谱（节约 80% Token，快速理解项目全局架构）。
+* `extract_relevant_context`：根据自然语言任务 Prompt 智能过滤并装填相关核心代码文件。
+* `read_file_outline`：精确提取单个文件的接口契约与函数签名（保留签名与文档，剔除实现）。
+* `read_file_content`：源码精确精读，支持行号切片（`startLine`/`endLine`）与敏感凭证自动脱敏。
+
 ---
 
 ## 📄 开源许可证
