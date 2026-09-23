@@ -1,0 +1,8 @@
+{
+  "$schema": "https://glama.ai/mcp/schemas/server.json",
+  "name": "repocontext",
+  "description": "Next-gen AST codebase map, token compression (70%~85% savings), and context packaging engine for AI coding agents & IDEs.",
+  "maintainers": [
+    "ILoveMyJay"
+  ]
+}
